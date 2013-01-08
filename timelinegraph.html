@@ -1,0 +1,134 @@
+<html>
+	<head>
+	<title>DJI</title>
+	<script type="text/javascript" src="../d3/d3.v2.js"></script>
+	<style type="text/css">
+
+		body {
+			font: 10px sans-serif;
+			background:gray;
+		}
+		
+/*
+		rect {
+			fill: #ddd;
+		}
+*/
+		
+		path.area {
+			fill: #000;
+			fill-opacity: .75;
+		}
+		
+		.axis, .grid {
+			shape-rendering: crispEdges;
+		}
+		
+		.grid line {
+			stroke: #E6E6E6;
+		}
+		
+		.grid line.minor {
+			stroke-opacity: .5;
+		}
+		
+		.grid text {
+			display: none;
+		}
+		
+		.axis line {
+			stroke: #E6E6E6;
+		}
+		
+		.grid path, .axis path {
+			display: none;
+		}
+
+	</style>
+	</head>
+		<body>
+
+	<script type="text/javascript">
+
+		var m = [10, 50, 20, 10],
+			w = 1200 - m[1] - m[3],
+			h = 500 - m[0] - m[2],
+			parse = d3.time.format("%Y/%m/%d").parse;
+		
+		// Scales. Note the inverted domain for the y-scale: bigger is up!
+		var x = d3.time.scale().range([20, w - 20]),
+			y = d3.scale.linear().range([h - 20, 20]);
+		
+		// Axes.
+		var xAxis = d3.svg.axis().scale(x).orient("bottom"),
+			yAxis = d3.svg.axis().scale(y).orient("right");
+		
+		var svg = d3.select("body").append("svg")
+			.attr("width", w + m[1] + m[3])
+			.attr("height", h + m[0] + m[2])
+			.append("g")
+			.attr("transform", "translate(" + m[3] + "," + m[0] + ")");
+		
+/*
+		svg.append("rect")
+			.attr("width", w)
+			.attr("height", h);
+*/
+		
+		x.domain([parse("2003/01/01"),parse("2012/09/01")]);
+		//var mM = d3.max(data, function(d) { return parseInt(d.size); })
+		var mM = 700;
+		console.log("max:"+mM);
+		y.domain([0, mM]);
+		
+		svg.append("g")
+			.attr("class", "x grid")
+			.attr("transform", "translate(0," + h + ")")
+			.call(xAxis.tickSubdivide(1).tickSize(-h));
+	
+		svg.append("g")
+			.attr("class", "y grid")
+			.attr("transform", "translate(" + w + ",0)")
+			.call(yAxis.tickSubdivide(1).tickSize(-w));
+	
+		svg.append("g")
+			.attr("class", "x axis")
+			.attr("transform", "translate(0," + h + ")")
+			.call(xAxis.tickSubdivide(0).tickSize(6));
+	
+		svg.append("g")
+			.attr("class", "y axis")
+			.attr("transform", "translate(" + w + ",0)")
+			.call(yAxis.tickSubdivide(0).tickSize(6));
+							
+		var loadMyCsv = function(inCsvFile,color) {
+			d3.csv(inCsvFile, function(data) {
+			
+				// Parse dates and numbers.
+				data.forEach(function(d) {
+					//console.log('date:'+d.date);
+					d.date = parse(d.date);
+					d.size = d.content.length;
+					});
+					
+				svg.selectAll('circles_'+color)
+					.data(data)
+					.enter().append('svg:circle')
+						.attr("cx",function(d) { return x(d.date); })
+						.attr("cy",function(d) { return y(d.size); })
+						.attr("r",1)
+						.attr("fill",color)
+						.attr("opacity",0.5)
+						.attr("stroke","transparent");
+			});
+		};
+		
+		loadMyCsv("../CSV/EVENTS.csv","blue");
+		loadMyCsv("../CSV/NOTTS.csv","yellow");
+		loadMyCsv("../CSV/SMS.csv","green");
+		loadMyCsv("../CSV/CHAT.csv","red");
+		
+	</script>
+	
+	</body>
+</html>
